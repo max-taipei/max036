@@ -62,6 +62,7 @@ public class Ages implements AgesCommon {
     private List<AgesCard> 時代I軍事牌;
     private List<AgesCard> 時代II軍事牌;
     private List<AgesCard> 時代III軍事牌;
+    private List<AgesCard> 軍事牌回收區;
     private List<AgesCard> 未來事件;
     private List<AgesCard> 當前事件;
     private List<AgesCard> 現在發生事件;
@@ -270,6 +271,7 @@ public class Ages implements AgesCommon {
         時代I軍事牌 = cardFactory.getAgeMilitary(1);
         時代II軍事牌 = cardFactory.getAgeMilitary(2);
         時代III軍事牌 = cardFactory.getAgeMilitary(3);
+//        軍事牌回收區
 
         //
         // Shuffle
@@ -282,6 +284,7 @@ public class Ages implements AgesCommon {
         Collections.shuffle(時代II軍事牌);
         Collections.shuffle(時代III內政牌);
         Collections.shuffle(時代III軍事牌);
+//        Collections.shuffle( 軍事牌回收區);
 
         //
         // basic 6 cards for each player
@@ -1144,7 +1147,8 @@ public class Ages implements AgesCommon {
 //            }
 //        }
         currentPlayer.do維持();
-//        do腐敗();
+        currentPlayer.do腐敗();
+
         交換玩家();
         // before turn
         if (get當前回合() == 1) {
@@ -2013,10 +2017,42 @@ public class Ages implements AgesCommon {
             return name;
         }
 
-        public void sub支付內政點數(int cost) {
-            int old內政點數 = 內政點數.getVal();
-            內政點數.addPoints((-1) * cost);
-            showDebug("內政點數 " + old內政點數 + " => " + 內政點數.getVal());
+        public boolean sub支付內政點數(int cost) {
+            if (內政點數.getVal() >= cost) {
+                int old內政點數 = 內政點數.getVal();
+                內政點數.addPoints((-1) * cost);
+                showDebug("內政點數 " + old內政點數 + " => " + 內政點數.getVal());
+                return true;
+            } else {
+                showDebug("行動失敗，不夠支付內政點數");
+                return false;
+            }
+        }
+
+        public boolean sub支付軍事點數(int cost) {
+            if (軍事點數.getVal() >= cost) {
+
+                int old軍事點數 = 軍事點數.getVal();
+                軍事點數.addPoints((-1) * cost);
+                showDebug("軍事點數 " + old軍事點數 + " => " + 軍事點數.getVal());
+                return true;
+            } else {
+                showDebug("行動失敗，不夠支付軍事點數");
+                return false;
+            }
+        }
+
+        public boolean sub支付科技點數(int cost) {
+            if (this.科技.getVal() >= cost) {
+
+                int old科技點數 = 科技.getVal();
+                科技.addPoints((-1) * cost);
+                showDebug("科技點數 " + old科技點數 + " => " + 科技.getVal());
+                return true;
+            } else {
+                showDebug("行動失敗，不夠支付科技點數");
+                return false;
+            }
         }
 
         public Points get內政點數() {
@@ -2059,6 +2095,7 @@ public class Ages implements AgesCommon {
          * @param val
          */
         public void sub獲得資源(int val) {
+            int b = 0;
             System.out.println("正在開發獲得資源");
             System.out.println(getScore().getMap());
             System.out.println(this.getToken藍().getMap());
@@ -2076,16 +2113,23 @@ public class Ages implements AgesCommon {
                 //設定礦山藍點為 原本藍點+獲得藍點/礦山效果:石頭
                 System.out.println("目標藍點=" + this.礦山區.get(x).getEffectStone() + "點資源");
                 System.out.println("現在有" + this.礦山區.get(x).getTokenBlue() + "點藍點，要+" + val / this.礦山區.get(x).getEffectStone() + "個藍點");
-                this.礦山區.get(x).setTokenBlue(this.礦山區.get(x).getTokenBlue() + (val / this.礦山區.get(x).getEffectStone()));
-
+                while ((val > this.礦山區.get(x).getEffectStone()) && (this.get資源庫_藍點().getVal() > 0)) {
+                    System.out.println("資源庫_藍點移至礦山區...礦山區的藍點值:" + 礦山區.get(x).getEffectStone());
+                    this.subMove資源庫藍點to卡牌(礦山區.get(x), 1);
+//                    this.get資源庫_藍點().setVal(this.get資源庫_藍點().getVal() - 1);
+//                    this.礦山區.get(x).setTokenBlue(this.礦山區.get(x).getTokenBlue() + 1);
+                }
+//                this.礦山區.get(x).setTokenBlue(this.礦山區.get(x).getTokenBlue() + (val / this.礦山區.get(x).getEffectStone()));
+//                b=b+val % this.礦山區.get(x).getEffectStone();
 //            System.out.println("現在將時代"+礦山區.get(x).getAge()+"的礦山放入"+val/this.礦山區.get(x).getEffectStone()+"個藍點");
-                val = val % this.礦山區.get(x).getEffectStone();
+//                val = val % this.礦山區.get(x).getEffectStone();
 
                 System.out.println("剩下[" + val + "]點資源要處理");
 
             }
         }
 
+//        public void 
         public void sub獲得食物(int val) {
             showDebug("DOING...sub獲得食物" + val);
             for (int x = 農場區.size() - 1; x >= 0; x--) {
@@ -2095,11 +2139,16 @@ public class Ages implements AgesCommon {
                 //設定礦山藍點為 原本藍點+獲得藍點/礦山效果:石頭
                 showDebug("目標藍點=" + this.農場區.get(x).getEffectFood() + " food");
                 showDebug("現在有" + this.農場區.get(x).getTokenBlue() + "點藍點，要+" + val / 農場區.get(x).getEffectFood() + "個藍點");
-                礦山區.get(x).setTokenBlue(農場區.get(x).getTokenBlue() + (val / 礦山區.get(x).getEffectFood()));
+//                礦山區.get(x).setTokenBlue(農場區.get(x).getTokenBlue() + (val / 礦山區.get(x).getEffectFood()));
+                while ((val > this.農場區.get(x).getEffectFood()) && (this.get資源庫_藍點().getVal() > 0)) {
+                    System.out.println("資源庫_藍點移至農場區...農場區的藍點值:" + 農場區.get(x).getEffectFood());
+                    this.subMove資源庫藍點to卡牌(農場區.get(x), 1);
+//                    this.get資源庫_藍點().setVal(this.get資源庫_藍點().getVal() - 1);
+//                    this.農場區.get(x).setTokenBlue(this.農場區.get(x).getTokenBlue() + 1);
+                }
 
 //            System.out.println("現在將時代"+礦山區.get(x).getAge()+"的礦山放入"+val/this.礦山區.get(x).getEffectStone()+"個藍點");
-                val = val % 農場區.get(x).getEffectFood();
-
+//                val = val % 農場區.get(x).getEffectFood();
                 showDebug("剩下[" + val + "]點資源要處理");
 
             }
@@ -2179,16 +2228,16 @@ public class Ages implements AgesCommon {
                     case "領袖":
                     case "奇蹟":
                         if (暫存應用區.get(x).getEffectIdea() != 0) {
-                            科技增加val = 科技增加val + ( 暫存應用區.get(x).getEffectIdea());
+                            科技增加val = 科技增加val + (暫存應用區.get(x).getEffectIdea());
                         }
                         if (暫存應用區.get(x).getEffectMusic() != 0) {
-                            文化增加val = 文化增加val + ( 暫存應用區.get(x).getEffectMusic());
+                            文化增加val = 文化增加val + (暫存應用區.get(x).getEffectMusic());
                         }
                         if (暫存應用區.get(x).getEffectSmile() != 0) {
-                            笑臉val = 笑臉val + ( 暫存應用區.get(x).getEffectSmile());
+                            笑臉val = 笑臉val + (暫存應用區.get(x).getEffectSmile());
                         }
                         if (暫存應用區.get(x).getEffectWeapon() != 0) {
-                            軍力val = 軍力val + ( 暫存應用區.get(x).getEffectWeapon());
+                            軍力val = 軍力val + (暫存應用區.get(x).getEffectWeapon());
                         }
 //                        if (暫存應用區.get(x).getEffectSmile() != 0) {
 //                            笑臉val = 笑臉val + 暫存應用區.get(x).getEffectSmile();
@@ -2945,16 +2994,20 @@ public class Ages implements AgesCommon {
 //            System.out.println("move " + amount + "藍點 From卡牌To資源庫");
         }
 
-        private void subMove資源庫藍點to卡牌(AgesCard card, int amount) {
-            showDebug(" before " + card.toString(STYLE_普通_藍點));
-            showDebug(" before 資源庫_藍點=" + get資源庫_藍點().getVal());
+        private boolean subMove資源庫藍點to卡牌(AgesCard card, int amount) {
+            if (get資源庫_藍點().getVal() > 0) {
+                showDebug(" before " + card.toString(STYLE_普通_藍點));
+                showDebug(" before 資源庫_藍點=" + get資源庫_藍點().getVal());
 
-            card.setTokenBlue(card.getTokenBlue() + amount);
-            get資源庫_藍點().addPoints(-amount);
+                card.setTokenBlue(card.getTokenBlue() + amount);
+                get資源庫_藍點().addPoints(-amount);
 
-            showDebug(" after " + card.toString(STYLE_普通_藍點));
-            showDebug(" after 資源庫_藍點=" + get資源庫_藍點().getVal());
-
+                showDebug(" after " + card.toString(STYLE_普通_藍點));
+                showDebug(" after 資源庫_藍點=" + get資源庫_藍點().getVal());
+                return true;
+            } else {
+                return false;
+            }
 //            System.out.println("move藍點From資源庫To卡牌" + card.toString(STYLE_普通));
         }
 
@@ -3987,11 +4040,13 @@ public class Ages implements AgesCommon {
                     break;
                 case "戰術":
                     System.out.println("***REPLACE CURRENT ONE");
+//                if (this.sub更新文明板塊上所提供的數) {
                     while (戰術區.size() > 0) {
                         戰術區.remove(0);
                     }
                     moveOneCard(this.手牌內政牌區, val, this.戰術區);
                     break;
+
                 case "戰爭":
                     System.out.println("***REPLACE CURRENT ONE");
                     while (戰爭區.size() > 0) {
@@ -4226,7 +4281,7 @@ public class Ages implements AgesCommon {
                     moveOneCard(this.手牌內政牌區, val, this.未分類區);
             }
 
-            //
+        //
             // 06/16 13:30, by Mark
             //
             subUpdate手牌上限();
@@ -4478,7 +4533,7 @@ public class Ages implements AgesCommon {
                     moveOneCard(this.手牌軍事牌區, val, this.未分類區);
             }
 
-            //
+        //
             // 06/16 13:30, by Mark
             //
             subUpdate手牌上限();
@@ -4562,6 +4617,30 @@ public class Ages implements AgesCommon {
             }
             return true;
 
+        }
+
+        private void do腐敗() {
+            int val = this.get資源庫_藍點().getVal();
+            int amt = 0;
+
+            if (val <= 9) {
+                amt = AgesCommon.array回合腐敗支付資源對照表[val];
+                showDebug("回合腐敗失去資源=" + amt);
+            }
+            showDebug("!!!!!!!!!!!!!!!!!!!!!!!getAvailable資源=" + getAvailable資源());
+            showDebug("!!!!!!!!!!!!!!!!!!!!!!!amt=" + amt);
+            if (this.getAvailable資源() < amt) {
+//                showWhyNoAction(ReasonWhyNoAction.食物不够);
+
+//                showDebug("!!!!!!!!!!!!!!!!!!!!!!!食物不夠準備扣分=" + amt);
+                showDebug("!!!!!!!!!!!!!!!!!!!!!!!getAvailable資源=" + getAvailable資源());
+                showDebug("!!!!!!!!!!!!!!!!!!!!!!!amt=" + amt);
+//                int val2 = (amt - this.getAvailable食物()) * (-4);
+                sub支付資源(this.getAvailable資源());
+//                this.sub增加文化值(val2);
+            } else {
+                sub支付資源(amt);
+            }
         }
 
     }
