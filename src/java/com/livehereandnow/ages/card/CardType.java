@@ -13,6 +13,7 @@ package com.livehereandnow.ages.card;
  */
 public interface CardType {
 
+    
 //    int 內政 = 0;
 //    int 軍事 = 1;
 //

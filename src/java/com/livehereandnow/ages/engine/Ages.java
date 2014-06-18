@@ -683,7 +683,9 @@ public class Ages implements AgesCommon {
                     System.out.println("按遊戲規則:第一回合，只能拿牌，不能做打牌");
                     return false;
                 }
-                return act打牌(val);
+                return act打內政牌(val);
+            case "om"://out-military 
+                return act打軍事牌(val);
             case "military":
             case "m":
                 return actPlayMilitaryCard(val);
@@ -771,7 +773,7 @@ public class Ages implements AgesCommon {
      * @param index
      * @return
      */
-    private boolean act打牌(int index) {
+    private boolean act打內政牌(int index) {
         // 1
         if (index > currentPlayer.get手牌內政牌區().size() - 1 || index < 0) {
             System.out.println("我無法作出這個動作，我這個位置沒有牌");
@@ -809,12 +811,17 @@ public class Ages implements AgesCommon {
 
         }
 
-        act打牌core(index);
+        act打內政牌core(index);
         return true;
     }
 
-    private boolean act打牌core(int index) {
-        currentPlayer.actPlayCard(index);
+    private boolean act打內政牌core(int index) {
+        currentPlayer.actPlayCivilCard(index);
+        return true;
+    }
+
+    private boolean act打軍事牌core(int index) {
+        currentPlayer.actPlayMilitaryCard(index);
         return true;
     }
 
@@ -834,7 +841,7 @@ public class Ages implements AgesCommon {
         int index = 0;
         for (AgesCard ac : currentPlayer.get手牌內政牌區()) {
             if (ac.getSeq() == seq) {
-                return act打牌(index);
+                return act打內政牌(index);
             }
             index++;
         }
@@ -1481,7 +1488,29 @@ public class Ages implements AgesCommon {
 // 
 
     private void doChangeStage() {
-        set現在階段(內政階段);
+        if (get現在階段() == 政治階段) {
+//            set當前操作玩家(currentPlayer);
+//                show時代回合玩家階段();
+
+            InputStreamReader cin = new InputStreamReader(System.in);
+            BufferedReader in = new BufferedReader(cin);
+            if (currentPlayer.手牌軍事牌區.size() > currentPlayer.get軍事手牌上限().getVal()) {
+                System.out.println("你必須將軍事手牌(" + currentPlayer.手牌軍事牌區.size() + ")棄到，軍事手牌上限(" + currentPlayer.get軍事手牌上限().getVal() + ")張");
+//                System.out.println("請輸入要棄掉的軍事手牌index,由0開始");
+//                if (in.readLine().equalsIgnoreCase("Y")) {
+//
+//                }
+
+            }
+//            if (in.readLine().equalsIgnoreCase("Y")) {
+//                get當前操作玩家().get步兵區().get(0).setTokenYellow(get當前操作玩家().get步兵區().get(0).getTokenYellow() + 1);
+//            } else {
+//                System.out.println(get當前操作玩家().getName() + "決定不把閒置工人免費升級為戰士");
+//            }
+//            set現在階段(內政階段);
+        } else {
+            this.showDebug("你現在不是政治階段");
+        }
     }
 
     private boolean actPlayMilitaryCard(int val) {
@@ -1572,6 +1601,7 @@ public class Ages implements AgesCommon {
             case 9999:
                 getP1().sub更新文明板塊上所提供的數據();
                 break;
+
             case 1005:
                 getP1().sub擴充人口();
                 getP2().sub擴充人口();
@@ -1630,10 +1660,24 @@ public class Ages implements AgesCommon {
                     System.out.println("BBB失去" + p2不高興的工人數 * (4) + "文化");
 
                 }
+
+            case 1051:
+                showDebug("ACTION:每擁有一個不幸福的工人,下回合將減少兩個內政行動");
+                showDebug("目標範圍:全部的玩家");
+
+                showDebug("p1不幸福的工人=" + p1.get不幸福的工人());
+                showDebug("p2不幸福的工人=" + p2.get不幸福的工人());
+                if (p1.get不幸福的工人() > 0) {
+                    showDebug("P1下回合將減少兩個內政行動");
+                    p1.set下回合失去的內政點數(2 * p1.get不幸福的工人());
+                }
+                if (p2.get不幸福的工人() > 0) {
+                    showDebug("P2下回合將減少兩個內政行動");
+                    p2.set下回合失去的內政點數(2 * p1.get不幸福的工人());
+                }
+
+                break;
             /*
-             
-             case :
-             break;
              case :
              break;
              case :
@@ -1653,6 +1697,16 @@ public class Ages implements AgesCommon {
             default:
                 System.out.println("DOING... NEED TO PROGRAM FOR THIS EVENT " + val);
         }
+        return true;
+    }
+
+    private boolean act打軍事牌(int index) {
+        // 1
+        if (index > currentPlayer.get手牌軍事牌區().size() - 1 || index < 0) {
+            System.out.println("我無法作出這個動作，我這個位置沒有牌");
+            return false;
+        }
+        act打軍事牌core(index);
         return true;
     }
 
@@ -2018,10 +2072,10 @@ public class Ages implements AgesCommon {
         }
 
         public boolean sub支付內政點數(int cost) {
-            if (內政點數.getVal() >= cost) {
-                int old內政點數 = 內政點數.getVal();
-                內政點數.addPoints((-1) * cost);
-                showDebug("內政點數 " + old內政點數 + " => " + 內政點數.getVal());
+            if (目前內政點數.getVal() >= cost) {
+                int old內政點數 = 目前內政點數.getVal();
+                目前內政點數.addPoints((-1) * cost);
+                showDebug("內政點數 " + old內政點數 + " => " + 目前內政點數.getVal());
                 return true;
             } else {
                 showDebug("行動失敗，不夠支付內政點數");
@@ -2030,11 +2084,11 @@ public class Ages implements AgesCommon {
         }
 
         public boolean sub支付軍事點數(int cost) {
-            if (軍事點數.getVal() >= cost) {
+            if (目前軍事點數.getVal() >= cost) {
 
-                int old軍事點數 = 軍事點數.getVal();
-                軍事點數.addPoints((-1) * cost);
-                showDebug("軍事點數 " + old軍事點數 + " => " + 軍事點數.getVal());
+                int old軍事點數 = 目前軍事點數.getVal();
+                目前軍事點數.addPoints((-1) * cost);
+                showDebug("軍事點數 " + old軍事點數 + " => " + 目前軍事點數.getVal());
                 return true;
             } else {
                 showDebug("行動失敗，不夠支付軍事點數");
@@ -2056,11 +2110,11 @@ public class Ages implements AgesCommon {
         }
 
         public Points get內政點數() {
-            return 內政點數;
+            return 目前內政點數;
         }
 
         public Points get軍事點數() {
-            return 軍事點數;
+            return 目前軍事點數;
         }
 
         public void do維持() {
@@ -2159,7 +2213,7 @@ public class Ages implements AgesCommon {
         }
 
         public Points get內政手牌上限() {
-            return 內政手牌上限;
+            return 內政點數上限;
         }
 //public boolean is具有相同的牌()
 //{
@@ -2349,7 +2403,7 @@ public class Ages implements AgesCommon {
         }
 
         public Points get軍事手牌上限() {
-            return 軍事手牌上限;
+            return 軍事點數上限;
         }
 
         public Points get殖民點數() {
@@ -2601,9 +2655,6 @@ public class Ages implements AgesCommon {
             for (int x = 0; x < this.礦山區.size(); x++) {
                 while ((val > 0) && (this.礦山區.get(x).getTokenBlue() != 0)) {
                     val = val - 礦山區.get(x).getEffectStone();
-//                    System.out.println("還需支付的資源" + val);
-//                    礦山區.get(x).setTokenBlue(礦山區.get(x).getTokenBlue() - 1);
-//                    資源庫_藍點.addPoints(1);
                     subMove卡牌藍點to資源庫(礦山區.get(x), 1);
                 }
             }
@@ -2882,11 +2933,6 @@ public class Ages implements AgesCommon {
             }
 
             showDebug("TARGET ID IS NOT IN 實驗室神廟");
-//            if (isBuild農場礦山(id)) {
-//                showDebug("TARGET ID IS IN 農場礦山");
-//                return act建造農場礦山(id);
-//            }
-            showDebug("TARGET ID IS NOT IN 農場礦山");
 
             return false;
 //            this.actBuild奇蹟(id);
@@ -2935,7 +2981,7 @@ public class Ages implements AgesCommon {
 //                showWhyNoAction(ReasonWhyNoAction.NOT_THE_奇蹟CARD_UNDER_CONSTRUCTION);
 //                return false;
 //            }
-            if (currentPlayer.內政點數.getVal() < 1) {
+            if (currentPlayer.目前內政點數.getVal() < 1) {
                 showWhyNoAction(ReasonWhyNoAction.內政點數不够);
                 return false;
             }
@@ -3091,7 +3137,7 @@ public class Ages implements AgesCommon {
             buildList.addAll(神廟區);
             for (AgesCard card : buildList) {
                 if (card.getId() == id) {//找到目標的牌
-                    if (currentPlayer.內政點數.getVal() < required內政點數) {
+                    if (currentPlayer.目前內政點數.getVal() < required內政點數) {
 //                        System.out.println("no action, 你沒有內政點數");
                         showWhyNoAction(ReasonWhyNoAction.內政點數不够);
                         break;
@@ -3125,7 +3171,7 @@ public class Ages implements AgesCommon {
             buildList.addAll(礦山區);
             for (AgesCard card : buildList) {
                 if (card.getId() == id) {//找到目標的牌
-                    if (currentPlayer.內政點數.getVal() < required內政點數) {
+                    if (currentPlayer.目前內政點數.getVal() < required內政點數) {
                         System.out.println("no action, 你沒有內政點數");
                         break;
                     }
@@ -3150,7 +3196,7 @@ public class Ages implements AgesCommon {
         public boolean act升級實驗室神廟(int id1, int id2) {
             AgesCard card1 = 置入卡牌(id1);
             AgesCard card2 = 置入卡牌(id2);
-            if (內政點數.getVal() < 1) {
+            if (目前內政點數.getVal() < 1) {
                 showWhyNoAction(ReasonWhyNoAction.內政點數不够);
                 return false;
             }
@@ -3193,7 +3239,7 @@ public class Ages implements AgesCommon {
                 return false;
             }
 
-            if (內政點數.getVal() < 1) {
+            if (目前內政點數.getVal() < 1) {
                 showWhyNoAction(ReasonWhyNoAction.內政點數不够);
                 return false;
             }
@@ -3276,7 +3322,7 @@ public class Ages implements AgesCommon {
             sub支付內政點數(1);
             // 2.支付指定數量的资源    
 //            subMove卡牌藍點to資源庫(card, card.getCostStone());
-            sub支付資源(card1.getCostStone() - card2.getCostStone());
+            sub支付資源(card2.getCostStone() - card1.getCostStone());
 
             // 3.黃點
             this.subMove卡牌黃點to卡牌(card1, card2);
@@ -3304,7 +3350,7 @@ public class Ages implements AgesCommon {
             buildList.addAll(礦山區);
             for (AgesCard card : buildList) {
                 if (card.getId() == id) {//找到目標的牌
-                    if (currentPlayer.內政點數.getVal() < 1) {
+                    if (currentPlayer.目前內政點數.getVal() < 1) {
                         System.out.println("你沒有足夠的內政點數");
                         return false;
                     }
@@ -3316,7 +3362,7 @@ public class Ages implements AgesCommon {
 //                            + +card.getTokenYellow() + "  (成本" + card.getIconPoints() + ")" + "  礦山區 A青銅1032 藍點:" + this.get礦山區().get(0).getTokenBlue() + "  資源庫【藍】:" + this.資源庫_藍點);
                     card.setTokenYellow(card.getTokenYellow() - 1);//指定的卡上黃點+1
                     this.工人區_黃點.addPoints(+1);//玩家的工人區-1
-                    this.內政點數.addPoints(-1);
+                    this.目前內政點數.addPoints(-1);
                     //支付石頭
 //                    this.礦山區.get(0).setTokenBlue(礦山區.get(0).getTokenBlue() - card.getCostStone());
                     //增加資源庫的藍點
@@ -3464,11 +3510,11 @@ public class Ages implements AgesCommon {
         }
 
         private String name;
-        private Points 內政點數;
-        private Points 軍事點數;
+        private Points 目前內政點數;
+        private Points 目前軍事點數;
         private Points 建築上限;
-        private Points 內政手牌上限;
-        private Points 軍事手牌上限;
+        private Points 內政點數上限;
+        private Points 軍事點數上限;
         private Points 殖民點數;
         private Points 文化;
         private Points 文化生產_當回合;
@@ -3495,11 +3541,11 @@ public class Ages implements AgesCommon {
         }
 
         public void set內政點數(Points 內政點數) {
-            this.內政點數 = 內政點數;
+            this.目前內政點數 = 內政點數;
         }
 
         public void set軍事點數(Points 軍事點數) {
-            this.軍事點數 = 軍事點數;
+            this.目前軍事點數 = 軍事點數;
         }
 
         public void set建築上限(Points 建築上限) {
@@ -3507,11 +3553,11 @@ public class Ages implements AgesCommon {
         }
 
         public void set內政手牌上限(Points 內政手牌上限) {
-            this.內政手牌上限 = 內政手牌上限;
+            this.內政點數上限 = 內政手牌上限;
         }
 
         public void set軍事手牌上限(Points 軍事手牌上限) {
-            this.軍事手牌上限 = 軍事手牌上限;
+            this.軍事點數上限 = 軍事手牌上限;
         }
 
         public void set殖民點數(Points 殖民點數) {
@@ -3720,10 +3766,10 @@ public class Ages implements AgesCommon {
             token藍.getMap().put(3, 18);
 
             //
-            內政點數 = new Points();
-            軍事點數 = new Points();
-            內政手牌上限 = new Points();
-            軍事手牌上限 = new Points();
+            目前內政點數 = new Points();
+            目前軍事點數 = new Points();
+            內政點數上限 = new Points();
+            軍事點數上限 = new Points();
             建築上限 = new Points();
             殖民點數 = new Points();
 
@@ -3809,17 +3855,17 @@ public class Ages implements AgesCommon {
                 }
 
             }
-            int old內政手牌上限 = 內政手牌上限.getVal();
-            int old軍事手牌上限 = 軍事手牌上限.getVal();
+            int old內政手牌上限 = 內政點數上限.getVal();
+            int old軍事手牌上限 = 軍事點數上限.getVal();
             int old建築上限 = 建築上限.getVal();
 
             if (old內政手牌上限 != white) {
-                內政手牌上限.setVal(white);
+                內政點數上限.setVal(white);
                 showDoneDescription(DoneDescription.內政手牌上限_UPDATED);
                 showDebug(old內政手牌上限 + " => " + white);
             }
             if (old軍事手牌上限 != red) {
-                軍事手牌上限.setVal(red);
+                軍事點數上限.setVal(red);
                 showDoneDescription(DoneDescription.軍事手牌上限_UPDATED);
                 showDebug(old軍事手牌上限 + " => " + red);
             }
@@ -3969,11 +4015,11 @@ public class Ages implements AgesCommon {
         }
 
         public void show() {
-            System.out.println("\n  === " + name + " ===     資源:" + get資源明細() + "    食物:" + get食物明細());
-            內政點數.show("內政點數【白】");
-            軍事點數.show("軍事點數【紅】");
-            內政手牌上限.show("內政手牌上限");
-            軍事手牌上限.show("軍事手牌上限");
+            System.out.println("\n  === " + name + " ===     資源:" + get資源明細() + "    食物:" + get食物明細() + "   下回合失去的內政點數:" + get下回合失去的內政點數());
+            目前內政點數.show("目前內政點數【白】");
+            目前軍事點數.show("目前軍事點數【紅】");
+            內政點數上限.show("內政點數上限");
+            軍事點數上限.show("軍事點數上限");
             建築上限.show("建築上限");
             System.out.println("");
 
@@ -4020,7 +4066,11 @@ public class Ages implements AgesCommon {
             System.out.println("");
         }
 
-        public void actPlayCard(int val) {
+        public void actPlayMilitaryCard(int val) {
+            System.out.println("當前玩家棄掉軍事");
+        }
+
+        public void actPlayCivilCard(int val) {
             AgesCard card = this.手牌內政牌區.get(val);
 //        System.out.println(""+card.getCostRevolution());
 //            System.out.println("打出這張牌需要花費(" + card.getCostIdea() + ")科技");
@@ -4281,7 +4331,7 @@ public class Ages implements AgesCommon {
                     moveOneCard(this.手牌內政牌區, val, this.未分類區);
             }
 
-        //
+            //
             // 06/16 13:30, by Mark
             //
             subUpdate手牌上限();
@@ -4382,8 +4432,12 @@ public class Ages implements AgesCommon {
         }
 
         public void refill內政點數軍事點數() {
-            內政點數.setVal(內政手牌上限.getVal());
-            軍事點數.setVal(軍事手牌上限.getVal());
+            if (內政點數上限.getVal() - this.get下回合失去的內政點數() < 0) {
+                目前內政點數.setVal(0);
+            } else {
+                目前內政點數.setVal(內政點數上限.getVal());
+            }
+            目前軍事點數.setVal(軍事點數上限.getVal());
 
         }
 
@@ -4406,137 +4460,20 @@ public class Ages implements AgesCommon {
             }
         }
 
-        public void actPlayMilitaryCard(int val) {
-            if (val > 手牌軍事牌區.size() - 1) {
-                System.out.println("我無法作出這個動作，我這個位置沒有牌");
-                return;
-            }
-            AgesCard card = this.手牌軍事牌區.get(val);
-//        System.out.println(""+card.getCostRevolution());
-            System.out.println("打出這張牌需要花費(" + card.getCostIdea() + ")科技");
-            switch (card.getTag()) {
-                case "事件":
-                    System.out.println("現在打的是農場牌準本要放到農場區");
-                    moveOneCard(this.手牌軍事牌區, val, this.農場區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "":
-                    System.out.println("***REPLACE CURRENT ONE");
-                    while (領袖區.size() > 0) {
-                        領袖區.remove(0);
-                    }
-                    moveOneCard(this.手牌軍事牌區, val, this.領袖區);
-                    break;
-                case "戰術":
-                    System.out.println("***REPLACE CURRENT ONE");
-                    while (戰術區.size() > 0) {
-                        戰術區.remove(0);
-                    }
-                    moveOneCard(this.手牌軍事牌區, val, this.戰術區);
-                    break;
-                case "戰爭":
-                    System.out.println("***REPLACE CURRENT ONE");
-                    while (戰爭區.size() > 0) {
-                        戰爭區.remove(0);
-                    }
-                    moveOneCard(this.手牌軍事牌區, val, this.戰爭區);
-                    break;
-                case "行動":
-                    System.out.println("打行動牌");
-                    while (行動牌區.size() > 0) {
-                        行動牌區.remove(0);
-                    }
-                    moveOneCard(this.手牌軍事牌區, val, this.行動牌區);
-                    break;
-                case "礦山":
-                    moveOneCard(this.手牌軍事牌區, val, this.礦山區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "實驗室":
-                    moveOneCard(this.手牌軍事牌區, val, this.實驗室);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "神廟":
-                    moveOneCard(this.手牌軍事牌區, val, this.神廟區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "步兵":
-                    moveOneCard(this.手牌軍事牌區, val, this.步兵區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "騎兵":
-                    moveOneCard(this.手牌軍事牌區, val, this.騎兵區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "炮兵":
-                    moveOneCard(this.手牌軍事牌區, val, this.炮兵區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "空軍":
-                    moveOneCard(this.手牌軍事牌區, val, this.空軍區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "競技場":
-                    moveOneCard(this.手牌軍事牌區, val, this.競技場區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "圖書館":
-                    moveOneCard(this.手牌軍事牌區, val, this.圖書館區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "劇院":
-                    moveOneCard(this.手牌軍事牌區, val, this.劇院區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "政府":
-                    System.out.println("***REPLACE CURRENT ONE");
-//                    System.out.print("" + card.toString(1));
-                    while (政府區.size() > 0) {
-                        政府區.remove(0);
-                    }
-                    moveOneCard(this.手牌軍事牌區, val, this.政府區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
 
-                case "內政":
-                    while (內政區.size() > 0) {
-                        內政區.remove(0);
-                    }
-                    System.out.println("打出內政牌" + card.getId() + card.getName());
-                    moveOneCard(this.手牌軍事牌區, val, this.內政區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "軍事":
-                    while (軍事區.size() > 0) {
-                        軍事區.remove(0);
-                    }
-                    moveOneCard(this.手牌軍事牌區, val, this.軍事區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "建築":
-                    while (建築區.size() > 0) {
-                        建築區.remove(0);
-                    }
-                    moveOneCard(this.手牌軍事牌區, val, this.建築區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                case "殖民":
-                    while (殖民區.size() > 0) {
-                        殖民區.remove(0);
-                    }
-                    moveOneCard(this.手牌軍事牌區, val, this.殖民區);
-                    this.科技.addPoints(-card.getCostIdea());
-                    break;
-                default:
-//                    System.out.println("");
-                    System.out.print("" + card.toString(1));
-                    moveOneCard(this.手牌軍事牌區, val, this.未分類區);
+        /**
+         * 回傳只傳正數或是0 get文明所需的笑臉()=5 this.笑臉_幸福指數.getVal()7 return 0
+         * get文明所需的笑臉()=5 this.笑臉_幸福指數.getVal()5 return 0 get文明所需的笑臉()=5
+         * this.笑臉_幸福指數.getVal()3 return 2
+         *
+         * @return
+         */
+        public int get不幸福的工人() {
+            int val = get文明所需的笑臉() - this.笑臉_幸福指數.getVal();
+            if (val < 0) {
+                val = 0;
             }
-
-        //
-            // 06/16 13:30, by Mark
-            //
-            subUpdate手牌上限();
+            return val;
         }
 
         public int get文明所需的笑臉() {
@@ -4641,6 +4578,15 @@ public class Ages implements AgesCommon {
             } else {
                 sub支付資源(amt);
             }
+        }
+        int 下回合失去的內政點數;
+
+        public void set下回合失去的內政點數(int 下回合失去的內政點數) {
+            this.下回合失去的內政點數 = 下回合失去的內政點數;
+        }
+
+        private int get下回合失去的內政點數() {
+            return 下回合失去的內政點數;
         }
 
     }
