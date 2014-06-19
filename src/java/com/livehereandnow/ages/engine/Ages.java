@@ -259,6 +259,7 @@ public class Ages implements AgesCommon {
         未來事件 = new ArrayList<>();
         當前事件 = new ArrayList<>();
         現在發生事件 = new ArrayList<>();
+        軍事牌回收區 = new ArrayList<>();
 
         //
         //
@@ -271,7 +272,7 @@ public class Ages implements AgesCommon {
         時代I軍事牌 = cardFactory.getAgeMilitary(1);
         時代II軍事牌 = cardFactory.getAgeMilitary(2);
         時代III軍事牌 = cardFactory.getAgeMilitary(3);
-//        軍事牌回收區
+//        軍事牌回收區=;
 
         //
         // Shuffle
@@ -284,7 +285,7 @@ public class Ages implements AgesCommon {
         Collections.shuffle(時代II軍事牌);
         Collections.shuffle(時代III內政牌);
         Collections.shuffle(時代III軍事牌);
-//        Collections.shuffle( 軍事牌回收區);
+//        Collections.shuffle(軍事牌回收區);
 
         //
         // basic 6 cards for each player
@@ -549,6 +550,7 @@ public class Ages implements AgesCommon {
 //        return field.
         if (id == 0) {
             field.show卡牌列();
+            field.show軍事牌回收區();
             return true;
         }
         if (id == 1) {
@@ -571,6 +573,7 @@ public class Ages implements AgesCommon {
         switch (keyword) {
             case "00":
                 field.show卡牌列();
+                field.show軍事牌回收區();
                 return "00";
             case "9999":
                 getP1().sub更新文明板塊上所提供的數據();
@@ -615,6 +618,7 @@ public class Ages implements AgesCommon {
 //                showSector(0);
                 show時代回合玩家階段();
                 field.show卡牌列();
+                field.show軍事牌回收區();
                 p1.show();
                 p2.show();
                 return " just did field.show(0)";
@@ -1706,6 +1710,11 @@ public class Ages implements AgesCommon {
             System.out.println("我無法作出這個動作，我這個位置沒有牌");
             return false;
         }
+//        軍事手牌上限2  = 軍事手牌區1張
+        if (currentPlayer.get軍事手牌上限().getVal() >= currentPlayer.get手牌軍事牌區().size()  ) {
+            System.out.println("你不能再棄軍事牌了，按照max的理解，規則是要保留手上的軍事牌數，如同軍事手牌上限");
+            return false;
+        }
         act打軍事牌core(index);
         return true;
     }
@@ -1781,6 +1790,10 @@ public class Ages implements AgesCommon {
 
         public List<AgesCard> get時代A軍事牌() {
             return 時代A軍事牌;
+        }
+
+        public List<AgesCard> get軍事牌回收區() {
+            return 軍事牌回收區;
         }
 
         public AgesCard getCardByName(List<AgesCard> list, String name) {
@@ -1956,7 +1969,11 @@ public class Ages implements AgesCommon {
             System.out.println("");
 
         }
+     public void show軍事牌回收區() {
+            show(軍事牌回收區, "軍事牌回收區");
+            System.out.println("");
 
+        }
         public void show當前事件未來事件() {
             show(現在發生事件, "現在發生事件");
             show(當前事件, "當前事件");
@@ -4067,7 +4084,10 @@ public class Ages implements AgesCommon {
         }
 
         public void actPlayMilitaryCard(int val) {
-            System.out.println("當前玩家棄掉軍事");
+            System.out.println("當前玩家棄掉軍事牌  index=" + val);
+            this.moveOneCard(this.手牌軍事牌區, val, field.get軍事牌回收區());
+//            this.
+                   
         }
 
         public void actPlayCivilCard(int val) {
@@ -4459,7 +4479,6 @@ public class Ages implements AgesCommon {
                     break;
             }
         }
-
 
         /**
          * 回傳只傳正數或是0 get文明所需的笑臉()=5 this.笑臉_幸福指數.getVal()7 return 0
