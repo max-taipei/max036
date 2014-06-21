@@ -1183,7 +1183,7 @@ public class Ages implements AgesCommon {
     }
 
     private boolean doChangeTurnV2() {
-        for (int k = 0; k < 46; k++) {
+        for (int k = 0; k < 5; k++) {
             doChangeTurn();
         }
         return true;
@@ -3201,9 +3201,9 @@ public class Ages implements AgesCommon {
             int required資源 = 999;
 
             buildList.addAll(步兵區);
-             buildList.addAll(騎兵區);
-              buildList.addAll(炮兵區);
-               buildList.addAll(空軍區);
+            buildList.addAll(騎兵區);
+            buildList.addAll(炮兵區);
+            buildList.addAll(空軍區);
 //            buildList.addAll(礦山區);
             for (AgesCard card : buildList) {
                 if (card.getId() == id) {//找到目標的牌
@@ -4766,36 +4766,84 @@ public class Ages implements AgesCommon {
          * @param card
          */
         private int 軍力運算(AgesCard card) {
+            if (card.getEffectWeaponOld() > 0) {
+                System.out.println("該戰術牌有過期武器要處理");
+            }
+            boolean 過期 = false;
             int 增加軍力 = 0;
             int 步val = 0;
             int 騎val = 0;
             int 炮val = 0;
+            int 過期步val = 0;
+            int 過期騎val = 0;
+            int 過期炮val = 0;
+//            2
             for (int x = 0; x < this.步兵區.size(); x++) {
-                步val += 步兵區.get(x).getTokenYellow();
+//0>=2-1
+                if (this.步兵區.get(x).getAge().intValue() >= card.getAge().intValue() - 1) {//這張牌得步兵時代如果>=戰術牌的時代-1
+                    步val += 步兵區.get(x).getTokenYellow();
+                } else {
+                    過期步val += 步兵區.get(x).getTokenYellow();
+                }
             }
+
+            System.out.println("過期步兵=" + 過期步val);
             System.out.println("步兵=" + 步val);
+
             for (int y = 0; y < this.騎兵區.size(); y++) {
-                騎val += 騎兵區.get(y).getTokenYellow();
+                if (this.騎兵區.get(y).getAge().intValue() >= card.getAge().intValue() - 1) {
+                    騎val += 騎兵區.get(y).getTokenYellow();
+                } else {
+                    過期騎val += 騎兵區.get(y).getTokenYellow();
+                }
             }
+            System.out.println("過期騎兵=" + 過期騎val);
             System.out.println("騎兵=" + 騎val);
             for (int z = 0; z < this.炮兵區.size(); z++) {
-                炮val += 炮兵區.get(z).getTokenYellow();
+                if (this.炮兵區.get(z).getAge().intValue() >= card.getAge().intValue() - 1) {
+                    炮val += 炮兵區.get(z).getTokenYellow();
+                } else {
+                    過期炮val += 炮兵區.get(z).getTokenYellow();
+                }
             }
+            System.out.println("過期炮兵=" + 過期炮val);
             System.out.println("炮兵=" + 炮val);
             while (true) {
+                /**
+                 * 4-2 2-2 0-0
+                 *
+                 */
                 步val -= card.getCostFoot();
                 if (步val < 0) {
-                    break;
+                    過期步val += 步val;
+                    過期 = true;
+                    if (過期步val < 0) {
+                        break;
+                    }
                 }
                 騎val -= card.getCostHorse();
                 if (騎val < 0) {
-                    break;
+                    過期騎val += 騎val;
+                    過期 = true;
+                    if (過期騎val < 0) {
+                        break;
+                    }
                 }
                 炮val -= card.getCostCannon();
                 if (炮val < 0) {
-                    break;
+                    過期炮val += 炮val;
+                    過期 = true;
+                    if (過期炮val < 0) {
+                        break;
+                    }
                 }
-                增加軍力 += card.getEffectWeapon();
+                if (!過期) {
+                    增加軍力 += card.getEffectWeapon();
+                }
+                if (過期) {
+                    增加軍力 += card.getEffectWeaponOld();
+
+                }
                 System.out.println("這張牌的軍力目前值" + 增加軍力);
             }
             return 增加軍力;
