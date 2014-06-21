@@ -225,6 +225,10 @@ public class Ages implements AgesCommon {
         return 現在階段;
     }
 
+    public void sub從政治階段轉換到內政階段() {
+        this.set現在階段(內政階段);
+    }
+
     public void set現在階段(int 現在階段) {
         this.現在階段 = 現在階段;
     }
@@ -588,7 +592,7 @@ public class Ages implements AgesCommon {
                 return doPopulation();
 
             case "act":
-                return actActV1();
+                return act執行行動牌();
             case "list":
                 return doList();
             case "start":
@@ -689,10 +693,10 @@ public class Ages implements AgesCommon {
                 }
                 return act打內政牌(val);
             case "om"://out-military 
-                return act打軍事牌(val);
+                return act丟棄軍事牌(val);
             case "military":
             case "m":
-                return actPlayMilitaryCard(val);
+                return act打軍事牌(val);
             case "oo":
 //                return core.doPlayCard革命(val);
             case "拿"://在我的環境NetBeans無法執行，但是在DOS可以
@@ -825,7 +829,7 @@ public class Ages implements AgesCommon {
     }
 
     private boolean act打軍事牌core(int index) {
-        currentPlayer.actPlayMilitaryCard(index);
+        currentPlayer.act玩家丟棄軍事牌(index);
         return true;
     }
 
@@ -858,7 +862,7 @@ public class Ages implements AgesCommon {
             if (ac.getSeq() == seq) {
                 System.out.println("actPlayMilitaryCardBySeq seq=" + seq);
                 System.out.println("going to actPlayMilitaryCard index=" + index);
-                return actPlayMilitaryCard(index);
+                return act打軍事牌(index);
             }
             index++;
         }
@@ -1384,6 +1388,7 @@ public class Ages implements AgesCommon {
         }
 
         return currentPlayer.act建造(val);
+//        currentPlayer.act打軍事牌(val);
 
     }
 
@@ -1479,7 +1484,7 @@ public class Ages implements AgesCommon {
         return " updated DB";
     }
 
-    private String actActV1() {
+    private String act執行行動牌() {
         System.out.println("執行行動牌");
 //           System.out.println(field.getCurrentPlayer().get行動牌暫存區().get(0).getName()+"  效果:"+field.getCurrentPlayer().get行動牌暫存區().get(0).getAction());
         currentPlayer.actActV1();
@@ -1493,82 +1498,53 @@ public class Ages implements AgesCommon {
 
     private void doChangeStage() {
         if (get現在階段() == 政治階段) {
-//            set當前操作玩家(currentPlayer);
-//                show時代回合玩家階段();
 
             InputStreamReader cin = new InputStreamReader(System.in);
             BufferedReader in = new BufferedReader(cin);
             if (currentPlayer.手牌軍事牌區.size() > currentPlayer.get軍事手牌上限().getVal()) {
                 System.out.println("你必須將軍事手牌(" + currentPlayer.手牌軍事牌區.size() + ")棄到，軍事手牌上限(" + currentPlayer.get軍事手牌上限().getVal() + ")張");
-//                System.out.println("請輸入要棄掉的軍事手牌index,由0開始");
-//                if (in.readLine().equalsIgnoreCase("Y")) {
-//
-//                }
-
+            } else {
+                this.sub從政治階段轉換到內政階段();
             }
-//            if (in.readLine().equalsIgnoreCase("Y")) {
-//                get當前操作玩家().get步兵區().get(0).setTokenYellow(get當前操作玩家().get步兵區().get(0).getTokenYellow() + 1);
-//            } else {
-//                System.out.println(get當前操作玩家().getName() + "決定不把閒置工人免費升級為戰士");
-//            }
-//            set現在階段(內政階段);
         } else {
-            this.showDebug("你現在不是政治階段");
+            this.showDebug("你現在不是政治階段，所以不允許轉換階段");
         }
     }
 
-    private boolean actPlayMilitaryCard(int val) {
+    private boolean act打軍事牌(int val) {
 //            field.getCurrentPlayer().actPlayMilitaryCard(val);
+
         if (val > currentPlayer.手牌軍事牌區.size() - 1) {
             System.out.println("我無法作出這個動作，我這個位置沒有牌");
-            return true;
+            return false;
         }
         AgesCard card = currentPlayer.手牌軍事牌區.get(val);
-        System.out.println("actPlayMilitaryCard, index is " + val + " and card name is " + card.getName() + " " + card.getTag());
-//        System.out.println(""+card.getCostRevolution());
-//        System.out.println("打出這張牌需要花費(" + card.getCostIdea() + ")科技");
-        switch (card.getTag()) {
-            case "事件":
-            case "領土":
-                System.out.println("將Tag= 事件 or 領土 牌放入未來事件");
-                moveOneCard(currentPlayer.手牌軍事牌區, val, field.get未來事件());
-                currentPlayer.get文化().addPoints(card.getAge());//放事件得分數
-                System.out.println("依照牌的時代給予" + card.getAge() + "分");
-                if (field.get現在發生事件().size() != 0) {
-                    field.get現在發生事件().remove(0);
-                }
-                moveOneCard(field.get當前事件(), 0, field.get現在發生事件());
-                if (field.get當前事件().size() == 0) {
-                    Collections.shuffle(field.get未來事件());
-                    for (int j = 0; j < 4; j++) {
-                        for (int k = 0; k < 3; k++) {
-                            if (field.get未來事件().get(k).getAge() > field.get未來事件().get(k + 1).getAge()) {
-                                moveOneCard(field.get未來事件(), k, field.get未來事件());
-                                k--;
-                            }
-                        }
-                    }
-                    moveOneCard(field.get未來事件(), 0, field.get當前事件());
-                    moveOneCard(field.get未來事件(), 0, field.get當前事件());
-                    moveOneCard(field.get未來事件(), 0, field.get當前事件());
-                    moveOneCard(field.get未來事件(), 0, field.get當前事件());
-                }
-//                Collections.shuffle(時代A內政牌);
-//                field.getCurrentPlayer().科技.addPoints(-card.getCostIdea());
-                break;
-
-            default:
-                System.out.println("現在只針對事件卡");
-
+        if (現在階段 == 政治階段) {
+            if (!card.is政治階段可執行的軍事牌()) {
+                showWhyNoAction(ReasonWhyNoAction.你無法在政治階段執行這張卡);
+//                this.showDebug(card.getName() + "    不預期的錯誤     " + card.getTag());
+                return false;
+            }
+            if (!currentPlayer.is足夠的軍事點數(card)) {
+                showWhyNoAction(ReasonWhyNoAction.軍事點數不够);
+                return false;
+            }
+//            currentPlayer.sub從軍事手牌區移除該牌(val);
+            currentPlayer.手牌軍事牌區.remove(val);
+            currentPlayer.sub玩家政治階段打軍事牌(card);
         }
-
-        //
-        // 06/16 13:30, by Mark
-        //
-//        subUpdate手牌上限();
-        //
-        // 06/16 13:30, by Mark
-        //
+        if (現在階段 == 內政階段) {
+            if (!card.is內政階段可執行的軍事牌()) {
+                showWhyNoAction(ReasonWhyNoAction.你無法在內政階段執行這張卡);
+                return false;
+            }
+            if (!currentPlayer.is有1點軍事點數()) {
+                showWhyNoAction(ReasonWhyNoAction.軍事點數不够);
+                return false;
+            }
+            currentPlayer.sub玩家內政階段打軍事牌(val);
+            return true;
+        }
         return true;
     }
 
@@ -1704,7 +1680,7 @@ public class Ages implements AgesCommon {
         return true;
     }
 
-    private boolean act打軍事牌(int index) {
+    private boolean act丟棄軍事牌(int index) {
         // 1
         if (index > currentPlayer.get手牌軍事牌區().size() - 1 || index < 0) {
             System.out.println("我無法作出這個動作，我這個位置沒有牌");
@@ -1715,7 +1691,7 @@ public class Ages implements AgesCommon {
             System.out.println("你不能再棄軍事牌了，按照max的理解，規則是要保留手上的軍事牌數，如同軍事");
             return false;
         }
-        act打軍事牌core(index);
+        currentPlayer.act玩家丟棄軍事牌(index);
         return true;
     }
 
@@ -1966,6 +1942,8 @@ public class Ages implements AgesCommon {
 //    }
         public void show卡牌列() {
             show(卡牌列, "卡牌列");
+            show(未來事件, "未來事件");
+//            show(現在事件,"現在事件");
             System.out.println("");
 
         }
@@ -2085,6 +2063,10 @@ public class Ages implements AgesCommon {
 
             to.add(from.remove(index));
         }
+//        public void moveOneCard(AgesCard> from,Ages card , List<AgesCard> to) {
+//
+//            to.add(from.remove(index));
+//        }
 
         public String getName() {
             return name;
@@ -2347,8 +2329,9 @@ public class Ages implements AgesCommon {
                 showDebug("軍力 " + old軍力 + " => " + 軍力val);
 
             }
-            
+
         }
+
         public int getHowManyMoreStage建造奇蹟() {
             if (建造中的奇蹟區.isEmpty()) {
                 return -1; // no wonder card under construction
@@ -3386,7 +3369,7 @@ public class Ages implements AgesCommon {
 
             // 3.黃點
             subMove工人區黃點to卡牌(card);
-             sub更新文明板塊上所提供的數據();
+            sub更新文明板塊上所提供的數據();
         }
 
         public void sub建造農場礦山(AgesCard card) {
@@ -3400,7 +3383,7 @@ public class Ages implements AgesCommon {
 
             // 3.黃點
             subMove工人區黃點to卡牌(card);
-             sub更新文明板塊上所提供的數據();
+            sub更新文明板塊上所提供的數據();
         }
 
         public boolean actDestroy農場礦山(int id) {
@@ -4125,7 +4108,7 @@ public class Ages implements AgesCommon {
             System.out.println("");
         }
 
-        public void actPlayMilitaryCard(int val) {
+        public void act玩家丟棄軍事牌(int val) {
             System.out.println("當前玩家棄掉軍事牌  index=" + val);
             this.moveOneCard(this.手牌軍事牌區, val, field.get軍事牌回收區());
 //            this.
@@ -4592,6 +4575,22 @@ public class Ages implements AgesCommon {
             }
         }
 
+        private boolean is足夠的軍事點數(AgesCard card) {
+            if (get軍事點數().getVal() < card.getCostRed()) {
+
+                return false;
+            }
+            return true;
+        }
+
+        private boolean is有1點軍事點數() {
+            if (get軍事點數().getVal() < 1) {
+
+                return false;
+            }
+            return true;
+        }
+
         private boolean isOk擴充人口() {
 //            System.out.println("TODO isOk擴充人口 1");
 //            System.out.println("TODO isOk擴充人口 2");
@@ -4659,5 +4658,98 @@ public class Ages implements AgesCommon {
             return true;
 
         }
+
+        /**
+         * 當牌放到未來事件時 將會把第0張的現在事件，移到現在發生事件
+         * 如果此效應結束之後現在事件為0張，將未來事件洗牌，並依時代0.1.2.3重新整理過後，移至現在事件
+         *
+         * 模擬如下
+         *
+         * 現在發生事件 無 當前事件 ABCD
+         *
+         * 未來事件 無 放入E卡到未來事件
+         *
+         * 現在發生事件 A 當前事件 BCD 未來事件
+         *
+         * E 放入F卡到未來事件
+         *
+         * 現在發生事件 B 當前事件 CD 未來事件 EF 放入G卡到未來事件
+         *
+         * 現在發生事件 C 當前事件 D 未來事件 EFG
+         *
+         * 放入H卡到未來事件
+         *
+         * 現在發生事件 D 當前事件 未來事件 EFGH
+         *
+         * 洗牌
+         *
+         * 現在發生事件 D 當前事件 未來事件 FHEG
+         *
+         * 現在發生事件 D 當前事件 未來事件 F(1)H(3)E(2)G(1)
+         *
+         * 調整
+         *
+         * 現在發生事件 D 當前事件 未來事件 F(1)G(1)E(2)H(3)
+         *
+         * 現在發生事件 D 當前事件 F(1)G(1)E(2)H(3) 未來事件
+         *
+         * @param card
+         */
+        private void sub將牌放入未來事件(AgesCard card) {
+
+            field.get未來事件().add(card);
+            currentPlayer.sub增加文化值(card.getAge().intValue());//放事件得分數
+//            System.out.println("依照牌的時代給予" + card.getAge() + "分");
+
+            if (field.get現在發生事件().size() != 0) {
+                field.get現在發生事件().remove(0);
+            }
+            moveOneCard(field.get當前事件(), 0, field.get現在發生事件());
+            if (field.get當前事件().size() == 0) {
+                Collections.shuffle(field.get未來事件());
+                for (int j = 0; j < 4; j++) {
+                    for (int k = 0; k < 3; k++) {
+                        if (field.get未來事件().get(k).getAge() > field.get未來事件().get(k + 1).getAge()) {
+                            moveOneCard(field.get未來事件(), k, field.get未來事件());
+                            k--;
+                        }
+                    }
+                }
+                moveOneCard(field.get未來事件(), 0, field.get當前事件());
+                moveOneCard(field.get未來事件(), 0, field.get當前事件());
+                moveOneCard(field.get未來事件(), 0, field.get當前事件());
+                moveOneCard(field.get未來事件(), 0, field.get當前事件());
+            }
+        }
+
+        private void sub玩家政治階段打軍事牌(AgesCard card) {
+            switch (card.getTag()) {
+//            在政治階段，將事件、領土，放入未來事件
+                case "事件":
+                case "領土":
+                    System.out.println("將Tag= 事件 or 領土 牌放入未來事件");
+                    this.sub將牌放入未來事件(card);
+                    break;
+                default:
+                    System.out.println("現在只針對事件卡");
+            }
+        }
+
+        private void sub玩家內政階段打軍事牌(int val) {
+
+            AgesCard card = currentPlayer.手牌軍事牌區.get(val);
+            System.out.println("sub玩家內政打軍事牌" + card.getName());
+//            玩家政治階段
+            switch (card.getTag()) {
+//            在政治階段，將事件、領土，放入未來事件
+                case "戰術":
+                    this.moveOneCard(this.手牌軍事牌區, val, this.戰術區);
+                    this.sub支付軍事點數(1);
+                    break;
+                default:
+                    System.out.println("只能打戰術牌");
+            }
+        }
+
     }
 }

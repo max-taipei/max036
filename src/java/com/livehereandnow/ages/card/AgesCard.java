@@ -318,6 +318,38 @@ public class AgesCard implements Serializable, AgesCommon {
         }
         return false;
     }
+/**is政治階段可執行的軍事牌
+ * 1.TAG=戰爭
+ * 2.TAG=侵略
+ * 3.TAG=事件
+ * 4.TAG=領土
+ * 
+ * @return 
+ */
+    public boolean is政治階段可執行的軍事牌() {
+
+        if (this.tag.equals("戰爭")) {
+            return true;
+        }
+        if (this.tag.equals("侵略")) {
+            return true;
+        }
+        if (this.tag.equals("事件")) {
+            return true;
+        }
+        if (this.tag.equals("領土")) {
+            return true;
+        }
+        return false;
+    }
+    public boolean is內政階段可執行的軍事牌() {
+
+        if (this.tag.equals("戰術")) {
+            return true;
+        }
+
+        return false;
+    }
         public boolean is行動牌() {
         if (this.tag.equals("行動")) {
             return true;

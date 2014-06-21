@@ -16,6 +16,11 @@ public enum ReasonWhyNoAction {
     GAME_IS_NOT_STARTED_YET,
     NOT_VALID_INDEX_FROM_CARDROW,
     內政點數不够,
+    軍事點數不够,
+    
+    你無法在政治階段執行這張卡,
+    
+    你無法在內政階段執行這張卡,
     資源不够,
     食物不够,
     升級位置沒有黃點,
