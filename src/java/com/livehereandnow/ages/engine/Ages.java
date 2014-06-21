@@ -2254,6 +2254,7 @@ public class Ages implements AgesCommon {
             暫存應用區.addAll(內政區);
             暫存應用區.addAll(殖民區);
             暫存應用區.addAll(軍事區);
+            暫存應用區.addAll(戰術區);
             for (int x = 0; x < 暫存應用區.size(); x++) {
 //            System.out.println(暫存應用區.get(x).getName());
                 AgesCard card = 暫存應用區.get(x);
@@ -2296,6 +2297,8 @@ public class Ages implements AgesCommon {
                             軍力val = 軍力val + (暫存應用區.get(x).getEffectWeapon());
                         }
                         break;
+                    case "戰術":
+                        軍力val += 軍力運算(card);
                     case "內政":
                     case "殖民":
                     case "軍事":
@@ -2936,9 +2939,9 @@ public class Ages implements AgesCommon {
                 return actBuild奇蹟();
             }
             showDebug("TARGET ID IS NOT IN 奇蹟");
-            if (isBuild步兵(id)) {
-                showDebug("TARGET ID IS IN 步兵");
-                return act建造步兵(id);
+            if (isBuild軍隊(id)) {
+                showDebug("TARGET ID IS IN 軍隊");
+                return act建造軍隊(id);
             }
             return false;
 //            this.actBuild奇蹟(id);
@@ -3087,9 +3090,12 @@ public class Ages implements AgesCommon {
             return false;
         }
 
-        public boolean isBuild步兵(int id) {
+        public boolean isBuild軍隊(int id) {
             List<AgesCard> buildList = new ArrayList<>();
             buildList.addAll(步兵區);
+            buildList.addAll(騎兵區);
+            buildList.addAll(炮兵區);
+            buildList.addAll(空軍區);
             for (AgesCard card : buildList) {
                 if (card.getId() == id) {//找到目標的牌
                     return true;
@@ -3189,12 +3195,15 @@ public class Ages implements AgesCommon {
 
         }
 
-        public AgesCard chk建造步兵(int id) {
+        public AgesCard chk建造軍隊(int id) {
             List<AgesCard> buildList = new ArrayList<>();
             int required軍事點數 = 1;
             int required資源 = 999;
 
             buildList.addAll(步兵區);
+             buildList.addAll(騎兵區);
+              buildList.addAll(炮兵區);
+               buildList.addAll(空軍區);
 //            buildList.addAll(礦山區);
             for (AgesCard card : buildList) {
                 if (card.getId() == id) {//找到目標的牌
@@ -3358,7 +3367,7 @@ public class Ages implements AgesCommon {
 
         }
 
-        public void sub建造步兵(AgesCard card) {
+        public void sub建造軍隊(AgesCard card) {
 
             // 1.支付1點內政點數
             sub支付軍事點數(1);
@@ -3973,19 +3982,19 @@ public class Ages implements AgesCommon {
                     showSectorStyle(list, title, 103);
                     break;
 
+//               
+//                    showSectorStyle(list, title, 104);
+//
+//                    break;
                 case "劇院區":
                 case "競技場":
                 case "圖書館":
-                case "騎兵區":
-                case "炮兵區":
-                case "空軍區":
-                    showSectorStyle(list, title, 104);
-
-                    break;
-
                 case "實驗室":
                 case "神廟區":
                 case "步兵區":
+                case "騎兵區":
+                case "炮兵區":
+                case "空軍區":
                     showNewLine();
                     showSectorStyle(list, title, STYLE_普通_黃點);
                     break;
@@ -4649,12 +4658,12 @@ public class Ages implements AgesCommon {
             return 下回合失去的內政點數;
         }
 
-        private boolean act建造步兵(int id) {
-            AgesCard card = chk建造步兵(id);
+        private boolean act建造軍隊(int id) {
+            AgesCard card = chk建造軍隊(id);
             if (card.isNOCARD()) {
                 return false;
             }
-            sub建造步兵(card);
+            sub建造軍隊(card);
             return true;
 
         }
@@ -4749,6 +4758,47 @@ public class Ages implements AgesCommon {
                 default:
                     System.out.println("只能打戰術牌");
             }
+        }
+
+        /**
+         * costFoot=3 costHorse=0 costCannon=0 依照該戰術時代
+         *
+         * @param card
+         */
+        private int 軍力運算(AgesCard card) {
+            int 增加軍力 = 0;
+            int 步val = 0;
+            int 騎val = 0;
+            int 炮val = 0;
+            for (int x = 0; x < this.步兵區.size(); x++) {
+                步val += 步兵區.get(x).getTokenYellow();
+            }
+            System.out.println("步兵=" + 步val);
+            for (int y = 0; y < this.騎兵區.size(); y++) {
+                騎val += 騎兵區.get(y).getTokenYellow();
+            }
+            System.out.println("騎兵=" + 騎val);
+            for (int z = 0; z < this.炮兵區.size(); z++) {
+                炮val += 炮兵區.get(z).getTokenYellow();
+            }
+            System.out.println("炮兵=" + 炮val);
+            while (true) {
+                步val -= card.getCostFoot();
+                if (步val < 0) {
+                    break;
+                }
+                騎val -= card.getCostHorse();
+                if (騎val < 0) {
+                    break;
+                }
+                炮val -= card.getCostCannon();
+                if (炮val < 0) {
+                    break;
+                }
+                增加軍力 += card.getEffectWeapon();
+                System.out.println("這張牌的軍力目前值" + 增加軍力);
+            }
+            return 增加軍力;
         }
 
     }
