@@ -48,6 +48,7 @@ public class Ages implements AgesCommon {
     private Player p1;
     private Player p2;
     private Player currentPlayer;
+    private Player opponentPlayer;
     private Player 當前操作玩家;
     private List<Player> allPlayers;
     AgesCardFactory cardFactory;
@@ -163,6 +164,7 @@ public class Ages implements AgesCommon {
             sb.append("回合");
             sb.append(ages.get當前回合());
             sb.append(ages.getCurrentPlayerName());
+
             sb.append(STAGE_NAME[ages.get現在階段()]);
             System.out.print(sb.toString() + "$ ");
 
@@ -185,6 +187,7 @@ public class Ages implements AgesCommon {
     public void 交換玩家() {
 
         if (currentPlayer == p1) {
+            opponentPlayer = p1;
             currentPlayer = p2;
             當前操作玩家 = currentPlayer;
 //            show時代回合玩家階段();
@@ -192,6 +195,7 @@ public class Ages implements AgesCommon {
             return;
         }
         if (currentPlayer == p2) {
+            opponentPlayer = p2;
             currentPlayer = p1;
 //            System.out.println("auto to next 回合");
             round.addPoints(1);
@@ -252,6 +256,7 @@ public class Ages implements AgesCommon {
         allPlayers.add(p1);
         allPlayers.add(p2);
         currentPlayer = p1;
+        opponentPlayer = p2;
         當前操作玩家 = p1;
         //
         cardFactory = new AgesCardFactory();
@@ -1353,6 +1358,11 @@ public class Ages implements AgesCommon {
                         System.out.println("時代:" + card.getAge() + " " + card.getTag() + " " + key + " " + getSameSizeName(card.getName()) + " " + card.getAction().trim() + " " + card.getEffect());
                     }
                     break;
+                case 12:
+                    if (card.getTag().equals("侵略")) {
+                        System.out.println("時代:" + card.getAge() + " " + card.getTag() + " " + key + " " + getSameSizeName(card.getName()) + " " + card.getAction().trim() + " " + card.getEffect());
+                    }
+                    break;
                 default:
                     System.out.println(" " + key + " " + getSameSizeName(card.getName()) + " " + card.getAction().trim());
 
@@ -1520,6 +1530,30 @@ public class Ages implements AgesCommon {
         }
         AgesCard card = currentPlayer.手牌軍事牌區.get(val);
         if (現在階段 == 政治階段) {
+            switch (card.getId()) {
+                case 1119:
+                    System.out.println("這張牌是併吞 指定對手一個殖民地編號");
+                case 1114:
+                    System.out.println("這張牌是刺殺 依照對手領袖時代支付紅點");
+                    if (opponentPlayer.領袖區.size() != 0) {
+                        card.setCostRed(this.opponentPlayer.領袖區.get(0).getAge().intValue());
+                    } else {
+                        this.showDebug("對手沒有領袖牌");
+                        return false;
+                    }
+                    break;
+                case 1157:
+                    System.out.println("這張牌是破壞 依照對手建造中奇蹟時代支付紅點");
+                    if (opponentPlayer.建造中的奇蹟區.size() != 0) {
+                        card.setCostRed(this.opponentPlayer.建造中的奇蹟區.get(0).getAge().intValue());
+                    } else {
+                        this.showDebug("對手沒有建造中的奇蹟");
+                        return false;
+                    }
+                    break;
+                default:
+                    break;
+            }
             if (!card.is政治階段可執行的軍事牌()) {
                 showWhyNoAction(ReasonWhyNoAction.你無法在政治階段執行這張卡);
 //                this.showDebug(card.getName() + "    不預期的錯誤     " + card.getTag());
@@ -1565,7 +1599,38 @@ public class Ages implements AgesCommon {
          */
         //        System.out.println("只執行Tag=事件");
 //        System.out.println(field.get現在發生事件().get(0).getAction());
+        InputStreamReader cin = new InputStreamReader(System.in);
+        BufferedReader in = new BufferedReader(cin);
         switch (val) {
+            case 6666:
+                int pp1;
+                set當前操作玩家(opponentPlayer);
+                System.out.println(get當前操作玩家().getName() + "選擇失去一個人口(黃點)");
+
+//                in.readLine().equalsIgnoreCase("str");
+                boolean isntdone = true;
+                while (isntdone) {                    
+                    System.out.println("test");
+                    String str = in.readLine();
+                    System.out.println("你輸入了" + str);
+                    try {
+                        pp1 = Integer.parseInt(str);
+                    } catch (Exception ex) {
+                        System.out.println("Parameter must be integer!");
+                        return false;
+                    }
+                    if(opponentPlayer.act強制拆除(pp1))
+                    {
+                        isntdone=false;
+                    }
+                    else{
+                        System.out.println("這不是有效的目標");
+                    }
+                }
+
+                交換當前操作玩家();
+                break;
+
             case 12345:
                 System.out.println("列出玩家科技牌區域的所有牌數量:");
                 System.out.println(this.currentPlayer.get科技牌的檢查區域().size());
@@ -1590,8 +1655,6 @@ public class Ages implements AgesCommon {
                 set當前操作玩家(currentPlayer);
                 show時代回合玩家階段();
 
-                InputStreamReader cin = new InputStreamReader(System.in);
-                BufferedReader in = new BufferedReader(cin);
                 System.out.println(get當前操作玩家().getName() + "是否將一名閒置工人免費升級為戰士(Y/N)");
                 if (in.readLine().equalsIgnoreCase("Y")) {
                     System.out.println(get當前操作玩家().getName() + "決定閒置工人免費升級為戰士");
@@ -1677,6 +1740,7 @@ public class Ages implements AgesCommon {
             default:
                 System.out.println("DOING... NEED TO PROGRAM FOR THIS EVENT " + val);
         }
+
         return true;
     }
 
@@ -1693,6 +1757,7 @@ public class Ages implements AgesCommon {
         }
         currentPlayer.act玩家丟棄軍事牌(index);
         return true;
+
     }
 
 //    private void show(int i) {
@@ -3395,6 +3460,26 @@ public class Ages implements AgesCommon {
             sub更新文明板塊上所提供的數據();
         }
 
+        public boolean act強制拆除(int id) {
+            List<AgesCard> buildList = new ArrayList<>();
+            buildList.addAll(農場區);
+            buildList.addAll(礦山區);
+            for (AgesCard card : buildList) {
+                if (card.getId() == id) {//找到目標的牌
+                    if (card.getTokenYellow() < 1) {
+                        System.out.println("你沒有工人");
+                        return false;
+                    }
+                    card.setTokenYellow(card.getTokenYellow() - 1);//指定的卡上黃點+1
+                    this.工人區_黃點.addPoints(+1);//玩家的工人區-1
+                    System.out.println("摧毀成功" + card.getName());
+                    return true;//一次只操作一張牌，找到後返回
+                }
+            }
+            System.out.println("指定牌不為農場礦山");
+            return false;
+        }
+
         public boolean actDestroy農場礦山(int id) {
             List<AgesCard> buildList = new ArrayList<>();
             buildList.addAll(農場區);
@@ -3950,8 +4035,11 @@ public class Ages implements AgesCommon {
 
         private String getCardsWithGivenStyle(List<AgesCard> list, int style) {
             StringBuilder sb = new StringBuilder();
+            int index = 0;
             for (AgesCard card : list) {
+                sb.append(index);
                 sb.append(card.toString(style));
+                index++;
             }
             return sb.toString();
         }
@@ -4731,6 +4819,42 @@ public class Ages implements AgesCommon {
             }
         }
 
+        private void sub執行侵略效果(AgesCard card) throws IOException {
+            System.out.println("sub執行侵略效果");
+            switch (card.getId()) {
+
+                case 1059:
+                    set當前操作玩家(opponentPlayer);
+                    InputStreamReader cin = new InputStreamReader(System.in);
+                    BufferedReader in = new BufferedReader(cin);
+                    System.out.println(get當前操作玩家().getName() + "選擇失去一個人口(黃點)");
+                    if (in.readLine().equalsIgnoreCase("Y")) {
+                        System.out.println(get當前操作玩家().getName() + "決定閒置工人免費升級為戰士");
+
+                    } else {
+                        System.out.println(get當前操作玩家().getName() + "決定不把閒置工人免費升級為戰士");
+                    }
+                    交換當前操作玩家();
+                    break;
+                default:
+                    System.out.println("目前這張侵略牌效果尚未撰寫");
+                /*
+                 時代:1 侵略 1059 奴役　　　　　　 侵略成功時,受害方:失去一個人口,侵略方:獲得三個資源 
+                 時代:1 侵略 1070 掠奪　　　　　　 侵略成功時,受害方:失去三個食物資源,侵略方:獲得同等食物資源(總計三個) 
+                 時代:1 侵略 1090 突襲　　　　　　 侵略成功時,受害方:失去一城市建築物，侵略方:獲得造價一半資源 
+                 時代:2 侵略 1114 刺殺　　　　　　 消耗軍事行動=領袖等級，侵略成功時,受害方:領袖移除,侵略方:獲得領袖等級*3文明分數 
+                 時代:2 侵略 1119 吞併　　　　　　 侵略成功時,受害方:失去一塊殖民地，和永久加成,侵略方:獲得一塊殖民地，和永久加成 
+                 時代:2 侵略 1137 掠奪　　　　　　 侵略成功時,受害方:失去五個食物資源,侵略方:獲得同等食物資源(總計五個) 
+                 時代:2 侵略 1157 破壞　　　　　　 侵略成功時,受害方:器掉一個建設中的奇蹟，侵略方:獲得每奇蹟等級*3分數消耗的軍事行動等於奇蹟等級 
+                 時代:2 侵略 1165 突襲　　　　　　 侵略成功時,受害方:失去兩城市建築物，侵略方:獲得造價一半資源 
+                 時代:2 侵略 1178 間諜　　　　　　 侵略成功時,受害方:失去最多五點科技,侵略方:獲得相同科技點數 
+                 時代:3 侵略 1220 掠奪　　　　　　 侵略成功時,受害方:失去八個食物資源,侵略方:獲得同等食物資源(總計八個) 
+                 時代:3 侵略 1225 武裝入侵　　　　 侵略成功時,受害方:失去七點文明點數,侵略方:獲得七點文明點數 
+                 時代:3 侵略 1239 突襲　　　　　　 侵略成功時,受害方:失去三城市建築物，侵略方:獲得造價一半資源 
+                 */
+            }
+        }
+
         private void sub玩家政治階段打軍事牌(AgesCard card) {
             switch (card.getTag()) {
 //            在政治階段，將事件、領土，放入未來事件
@@ -4738,6 +4862,15 @@ public class Ages implements AgesCommon {
                 case "領土":
                     System.out.println("將Tag= 事件 or 領土 牌放入未來事件");
                     this.sub將牌放入未來事件(card);
+                    break;
+                case "侵略":
+                    System.out.println("打侵略牌，目標默認設定另一位玩家，扣除玩家軍事點數");
+                    this.sub支付軍事點數(card.getCostRed());
+                    if (is侵略成功()) {
+//                        sub執行侵略效果(card);
+                    } else {
+                        System.out.println("侵略失敗");
+                    }
                     break;
                 default:
                     System.out.println("現在只針對事件卡");
@@ -4847,6 +4980,11 @@ public class Ages implements AgesCommon {
                 System.out.println("這張牌的軍力目前值" + 增加軍力);
             }
             return 增加軍力;
+        }
+
+        private boolean is侵略成功() {
+            System.out.println("目前默認成功");
+            return true;
         }
 
     }
