@@ -1609,7 +1609,7 @@ public class Ages implements AgesCommon {
 
 //                in.readLine().equalsIgnoreCase("str");
                 boolean isntdone = true;
-                while (isntdone) {                    
+                while (isntdone) {
                     System.out.println("test");
                     String str = in.readLine();
                     System.out.println("你輸入了" + str);
@@ -1619,22 +1619,17 @@ public class Ages implements AgesCommon {
                         System.out.println("Parameter must be integer!");
                         return false;
                     }
-                    if(opponentPlayer.act強制拆除(pp1))
-                    {
-                        isntdone=false;
-                    }
-                    else{
+                    if (opponentPlayer.act強制拆除(pp1)) {
+                        isntdone = false;
+                    } else {
                         System.out.println("這不是有效的目標");
                     }
                 }
-
                 交換當前操作玩家();
                 break;
 
             case 12345:
-                System.out.println("列出玩家科技牌區域的所有牌數量:");
-                System.out.println(this.currentPlayer.get科技牌的檢查區域().size());
-//                this.currentPlayer.get科技牌的檢查區域();
+                this.currentPlayer.進攻方軍力犧牲();
                 break;
             case 7777:
                 System.out.println("測試支付9資源");
@@ -4866,6 +4861,7 @@ public class Ages implements AgesCommon {
                 case "侵略":
                     System.out.println("打侵略牌，目標默認設定另一位玩家，扣除玩家軍事點數");
                     this.sub支付軍事點數(card.getCostRed());
+//                    is侵略戰鬥成功();
                     if (is侵略成功()) {
 //                        sub執行侵略效果(card);
                     } else {
@@ -4983,8 +4979,68 @@ public class Ages implements AgesCommon {
         }
 
         private boolean is侵略成功() {
-            System.out.println("目前默認成功");
-            return true;
+            System.out.println("=====玩家" + currentPlayer.name + "=====");
+            currentPlayer.showSector(步兵區, "步兵區");
+            currentPlayer.showSector(騎兵區, "騎兵區");
+            currentPlayer.showSector(炮兵區, "炮兵區");
+            currentPlayer.showSector(空軍區, "空軍區");
+            currentPlayer.showSector(手牌軍事牌區, "手牌軍事牌區");
+            System.out.println("");
+            System.out.println("共" + currentPlayer.軍力.getVal() + "軍力");
+            System.out.println("-------------------------------------------------------");
+            System.out.println("=====玩家" + opponentPlayer.name + "=====");
+            opponentPlayer.showSector(步兵區, "步兵區");
+            opponentPlayer.showSector(騎兵區, "騎兵區");
+            opponentPlayer.showSector(炮兵區, "炮兵區");
+            opponentPlayer.showSector(空軍區, "空軍區");
+            opponentPlayer.showSector(手牌軍事牌區, "手牌軍事牌區");
+            System.out.println("");
+            System.out.println("共" + opponentPlayer.軍力.getVal() + "軍力");
+
+            int 進攻方軍力=-1;
+//            int 進攻方軍力 = currentPlayer.進攻方軍力犧牲();
+            int 防守方軍力 = opponentPlayer.防禦方軍力犧牲();
+//            防守方軍力 = 防守方軍力 + opponentPlayer.侵略防禦使用防禦卡();
+
+            if (進攻方軍力 > 防守方軍力) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private int 進攻方軍力犧牲() throws IOException {
+//            currentPlayer.
+            InputStreamReader cin = new InputStreamReader(System.in);
+            BufferedReader in = new BufferedReader(cin);
+            int pp1;
+            set當前操作玩家(currentPlayer);
+
+            交換當前操作玩家();
+            String str;
+            int val = 0;
+            List<AgesCard> armyList = new ArrayList<>();
+            armyList.addAll(步兵區);
+            armyList.addAll(騎兵區);
+            armyList.addAll(炮兵區);
+            armyList.addAll(空軍區);
+            for (int x = 0; x < armyList.size(); x++) {
+                armyList.get(x).getName();
+                System.out.println("請問犧牲多少" + armyList.get(x).getName() + "(" + armyList.get(x).getTokenYellow() + ")");
+                str = in.readLine();
+                System.out.println("你輸入了" + str);
+                try {
+                    pp1 = Integer.parseInt(str);
+                } catch (Exception ex) {
+                    System.out.println("Parameter must be integer!");
+                }
+            }
+            return val;
+        }
+
+        private int 防禦方軍力犧牲() {
+
+            return 0;
         }
 
     }
